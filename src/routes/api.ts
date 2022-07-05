@@ -1,15 +1,7 @@
 import { Application, Request, Response } from "express";
 
 import logger from "../logger";
-import { Order } from "../models";
-
-interface Order {
-  _id: string;
-  description: string;
-  amount: number;
-  status: string;
-  calculated: boolean;
-}
+import { Community, Order } from "../models";
 
 export const loadApiEndpoints = (app: Application): void => {
   app.get("/order/:id", async (req: Request, res: Response) => {
@@ -23,60 +15,51 @@ export const loadApiEndpoints = (app: Application): void => {
 
       const order = await Order.findById(req.params.id);
 
-      res.status(200).send({ success: true, order });
+      if (!order) {
+        return res.status(404).send({
+          success: false,
+          error: "Order not found!",
+        });
+      }
+
+      res.status(200).send({
+        success: true,
+        order: {
+          id: order.id,
+          description: order.description,
+          amount: order.amount,
+          type: order.type,
+          fiat_amount: order.fiat_amount,
+          fiat_code: order.fiat_code,
+          payment_method: order.payment_method,
+          price_margin: order.price_margin,
+        },
+      });
     } catch (error) {
       res.status(500).send({ success: false });
     }
   });
 
-  app.post("/consignment", async (req: Request, res: Response) => {
+  app.get("/community", async (req: Request, res: Response) => {
     try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .send({ success: false, error: "Consignment file is missing!" });
-      }
+      const comms = await Community.find();
 
-      return res.status(200).send({ success: true });
-    } catch (error) {
-      res.status(500).send({ success: false });
-    }
-  });
-
-  app.post("/ack", async (req: Request, res: Response) => {
-    try {
-      if (!req.body.blindedutxo) {
-        return res
-          .status(400)
-          .send({ success: false, error: "blindedutxo missing!" });
-      }
-      const c = {};
-
-      if (!c) {
-        return res
-          .status(404)
-          .send({ success: false, error: "No consignment found!" });
-      }
-
-      if (!!c) {
-        return res
-          .status(403)
-          .send({ success: false, error: "Already responded!" });
-      }
-
-      return res.status(200).send({ success: true });
+      return res.status(200).send({
+        success: true,
+        comms,
+      });
     } catch (error) {
       logger.error(error);
       res.status(500).send({ success: false });
     }
   });
 
-  app.get("/ack/:blindedutxo", async (req: Request, res: Response) => {
+  app.get("/community/:id", async (req: Request, res: Response) => {
     try {
-      if (!req.params.blindedutxo) {
+      if (!req.params.id) {
         return res
           .status(400)
-          .send({ success: false, error: "blindedutxo missing!" });
+          .send({ success: false, error: "Community Id required!" });
       }
 
       return res.status(200).send({

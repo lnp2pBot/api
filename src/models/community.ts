@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from "mongoose";
 
-const OrderChannelSchema = new mongoose.Schema({
+const OrderChannelSchema = new Schema({
   name: { type: String, required: true, trim: true },
   type: {
     type: String,
@@ -8,37 +8,45 @@ const OrderChannelSchema = new mongoose.Schema({
   },
 });
 
-const usernameIdSchema = new mongoose.Schema({
+const usernameIdSchema = new Schema({
   id: { type: String, required: true },
   username: { type: String, required: true, trim: true },
 });
 
-const arrayLimits = (val) => {
-  return val.length > 0 && val.length <= 2;
-};
+export interface CommunityInput {
+  name: string;
+  creator_id: string;
+  group: string;
+  order_channels: [string];
+  fee: number;
+  earnings: number;
+  orders_to_redeem: number;
+  dispute_channel: string;
+  solvers: [string];
+  banned_users: [string];
+  public: boolean;
+  currencies: [string];
+}
 
-const currencyLimits = (val) => {
-  return val.length > 0 && val.length < 10;
-};
+export interface CommunityDocument extends CommunityInput, Document {
+  created_at: Date;
+}
 
-const CommunitySchema = new mongoose.Schema({
+const CommunitySchema = new Schema({
   name: {
     type: String,
     unique: true,
-    maxlength: 30,
-    trim: true,
     required: true,
   },
   creator_id: { type: String },
-  group: { type: String, trim: true }, // group Id or public name
+  group: { type: String }, // group Id or public name
   order_channels: {
     // array of Id or public name of channels
     type: [OrderChannelSchema],
-    validate: [arrayLimits, "{PATH} is not within limits"],
   },
-  fee: { type: Number, min: 0, max: 100, default: 0 },
-  earnings: { type: Number, default: 0 }, // Sats amount to be paid to the community
-  orders_to_redeem: { type: Number, default: 0 }, // Number of orders calculated to be redeemed
+  fee: { type: Number },
+  earnings: { type: Number }, // Sats amount to be paid to the community
+  orders_to_redeem: { type: Number }, // Number of orders calculated to be redeemed
   dispute_channel: { type: String }, // Id or public name, channel to send new disputes
   solvers: [usernameIdSchema], // users that are dispute solvers
   banned_users: [usernameIdSchema], // users that are banned from the community
@@ -46,10 +54,8 @@ const CommunitySchema = new mongoose.Schema({
   currencies: {
     type: [String],
     required: true,
-    trim: true,
-    validate: [currencyLimits, "{PATH} is not within limits"],
   },
-  created_at: { type: Date, default: Date.now },
+  created_at: { type: Date },
 });
 
-export default mongoose.model("Community", CommunitySchema);
+export default model<CommunityDocument>("Community", CommunitySchema);

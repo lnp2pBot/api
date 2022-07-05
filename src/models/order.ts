@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from "mongoose";
 
 export interface OrderInput {
   description: string;
@@ -8,11 +8,6 @@ export interface OrderInput {
   community_fee: number;
   routing_fee: number;
   creator_id: string;
-  seller_id: string;
-  buyer_dispute: boolean;
-  seller_dispute: boolean;
-  buyer_cooperativecancel: boolean;
-  seller_cooperativecancel: boolean;
   status: string;
   type: string;
   fiat_amount: number;
@@ -21,23 +16,18 @@ export interface OrderInput {
   price_from_api: boolean;
   price_margin: number;
   calculated: boolean;
-  admin_warned: boolean;
-  paid_hold_buyer_invoice_updated: boolean;
   community_id: string;
-  tg_channel_message1: number;
-  buyer_id: string;
-  buyer_invoice: string;
   hash: string;
   secret: string;
 }
 
-export interface OrderDocument extends OrderInput, mongoose.Document {
+export interface OrderDocument extends OrderInput, Document {
   created_at: Date;
   taken_at: Date;
   invoice_held_at: string;
 }
 
-const OrderSchema = new mongoose.Schema({
+const OrderSchema: Schema = new Schema({
   description: { type: String },
   amount: {
     // amount in satoshis
@@ -118,4 +108,4 @@ const OrderSchema = new mongoose.Schema({
   community_id: { type: String },
 });
 
-export default mongoose.model<OrderDocument>("Order", OrderSchema);
+export default model<OrderDocument>("Order", OrderSchema);
