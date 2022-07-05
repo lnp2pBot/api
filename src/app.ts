@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import httpContext from "express-http-context";
+import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 
 import logger from "./logger";
@@ -9,7 +10,15 @@ dotenv.config();
 let reqId = 0;
 // Create Express server
 const app = express();
+app.set("trust proxy", 1);
 
+const apiLimiter = rateLimit({
+  windowMs: 3000, // 3 seconds
+  max: 1, // Limit each IP to 1 request per `window`
+  message: "🤨",
+});
+
+app.use(apiLimiter);
 app.use(httpContext.middleware);
 // Set the Id to be used in the logs
 app.use(function (req, res, next) {
